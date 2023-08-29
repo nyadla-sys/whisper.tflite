@@ -1,2 +1,3 @@
-Coming Soon..
-Quantized whisper tflite model for Android and IOS 
+Enhanced the Whisper quantized tflite model for both Android and iOS platforms. Optimized for execution on edge devices, specifically tailored to enable Whisper's performance.
+
+Stay connected for further developments
