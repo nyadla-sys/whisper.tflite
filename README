@@ -1,8 +1,0 @@
-Requires 'git lfs install' as our whisper-tiny.en.tflite model uses Git Large File Storage (LFS).
-
-you can follow
-[git lfs installation guide](https://git-lfs.github.com/)
-
-Enhanced the Whisper quantized tflite model for both Android and iOS platforms. Optimized for execution on edge devices, specifically tailored to enable Whisper's performance.
-
-Stay connected for further developments
