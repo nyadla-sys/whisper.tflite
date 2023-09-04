@@ -30,8 +30,8 @@ git clone https://github.com/tensorflow/tensorflow.git tensorflow_src
 Copy the necessary files from this repository to the TensorFlow minimal example directory.
 
 ```bash
-cp tflite_example/minimal.cc  tensorflow_src/tensorflow/lite/examples/minimal/
-cp tflite_example/*.h  tensorflow_src/tensorflow/lite/examples/minimal/
+cp minimal.cc  tensorflow_src/tensorflow/lite/examples/minimal/
+cp *.h  tensorflow_src/tensorflow/lite/examples/minimal/
 ```
 ## Step 5: Create a CMake Build Directory
 Create a build directory for CMake and run the CMake tool.
