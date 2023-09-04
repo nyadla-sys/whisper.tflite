@@ -38,6 +38,11 @@ To get started with this enhanced Whisper model, follow these steps:
 
 You can find a sample Android app in the [android_example](android_example) folder that demonstrates how to use the Whisper TFLite model for transcription on Android devices.
 
+## TODO
+
+ - [ ] Considering adding DTLN noise cancellation tflite model to improve whisper ASR accuracy in noisy environments.
+
+
 ## Stay Updated
 
 Stay connected to this repository for further developments and updates related to the Whisper enhanced TFLite model. We are constantly working to improve its performance and compatibility with various edge devices.
