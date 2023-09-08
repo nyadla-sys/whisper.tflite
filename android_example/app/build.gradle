@@ -3,17 +3,22 @@ plugins {
 }
 
 android {
-    namespace 'com.example.tfliteaudio'
-    compileSdk 33
+    compileSdkVersion 33
 
     defaultConfig {
-        applicationId "com.example.tfliteaudio"
-        minSdk 26
-        targetSdk 33
-        versionCode 1
+        applicationId "com.whisper.android.tflitecpp"
+        minSdkVersion 24
+        targetSdkVersion 33
+        versionCode 3
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags "-frtti -fexceptions"
+                abiFilters 'armeabi-v7a', 'arm64-v8a'
+            }
+        }
     }
 
     buildTypes {
@@ -22,20 +27,30 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_16
-        targetCompatibility JavaVersion.VERSION_16
+    sourceSets {
+        main {
+            assets.srcDirs = ["src/main/ml"]
+        }
     }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.10.2"
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    namespace 'com.whisper.android.tflitecpp'
 }
 
 dependencies {
+
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    implementation 'org.tensorflow:tensorflow-lite:2.10.0'
-    implementation 'org.tensorflow:tensorflow-lite-support:0.4.3'
-    implementation files('libs/jlibrosa-1.1.8-SNAPSHOT-jar-with-dependencies.jar')
 }

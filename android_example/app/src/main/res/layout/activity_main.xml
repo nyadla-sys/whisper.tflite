@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    tools:ignore="MissingConstraints">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/margin"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/app_name_txt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/open_sans_semibold"
+            android:gravity="center"
+            android:text="@string/app_name_layout"
+            android:textColor="@color/darkBlue"
+            android:textSize="@dimen/chronometer_txt_size" />
+
+        <TextView
+            android:id="@+id/result"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/margin"
+            android:fontFamily="@font/open_sans_semibold"
+            android:textColor="@color/darkBlue"
+            android:textIsSelectable="true"
+            android:textSize="@dimen/txt_size" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/record"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/ic_mic_foreground"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Chronometer
+        android:id="@+id/record_chronometer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin"
+        android:countDown="true"
+        android:fontFamily="@font/open_sans_semibold"
+        android:textColor="@color/darkBlue"
+        android:textSize="@dimen/chronometer_txt_size"
+        app:layout_constraintBottom_toBottomOf="@+id/record"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/record"
+        app:layout_constraintTop_toTopOf="@+id/record" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
