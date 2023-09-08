@@ -1,12 +1,6 @@
 <resources>
-<string name="app_name">WhisperASR</string>
-<string name="transcribe">Transcribe</string>
-<string name="translate">Translate</string>
-<string name="record">Record</string>
-<string name="transcribing">Transcribing...</string>
-<string name="processing">Processing...</string>
-<string name="input_file_doesn_t_exist">Input file doesn\'t exist..!</string>
-<string name="stop">Stop</string>
-<string name="recording_is_completed">Recording is completed..!</string>
-<string name="loading_model_and_vocab">Loading model and vocab...</string>
+    <string name="app_name">Whisper</string>
+    <string name="app_name_layout">Whisper ASR</string>
+    <string name="record_complete">Record for 30Seconds Completed</string>
+    <string name="record_limit">Press the mic button to start recording for 30Seconds and stop when its done.</string>
 </resources>
