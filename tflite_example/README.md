@@ -59,7 +59,7 @@ You can now run inference on the Whisper model using pre-generated input feature
 
 ```bash
 # Transcribe an audio file
-./minimal ../../models/whisper.tflite ../samples/jfk.wav
+./minimal ../../models/whisper-tiny-en.tflite ../samples/jfk.wav
 ```
 
 Note: You can use the arecord application on a Linux computer to record test audio files with the following command:
