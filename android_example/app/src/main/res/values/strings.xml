@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">Whisper</string>
-    <string name="app_name_layout">Whisper ASR</string>
-    <string name="record_complete">Record for 30Seconds Completed</string>
-    <string name="record_limit">Press the mic button to start recording for 30Seconds and stop when its done.</string>
-</resources>
