@@ -1,2 +1,0 @@
-include ':app'
-rootProject.name = "Whisper ASR using TFLite C++ API"
