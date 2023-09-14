@@ -44,13 +44,14 @@ std::string removeExtraSpaces(const std::string& input) {
 
   return result;
 }
+
 int main(int argc, char* argv[]) {
   if ((argc != 2) && (argc != 3)) {
     fprintf(stderr, "'minimal <tflite model>' or 'minimal <tflite model> <pcm_file name>'\n");
     return 1;
   }
   const char* filename = argv[1];
-  whisper_mel mel;
+  WhisperMelSpectrogram mel; // Use the correct struct from whisper.h
   struct timeval start_time, end_time;
 
   // Create a pointer to the start of the unsigned char array
@@ -65,25 +66,25 @@ int main(int argc, char* argv[]) {
   }
   ptr += sizeof(magic); // Move the pointer to the next position
 
-  whisper_filters filters;
+  WhisperFilters filters; // Use the correct struct from whisper.h
   // Load mel filters
-  memcpy(&filters.n_mel, ptr, sizeof(filters.n_mel));
-  ptr += sizeof(filters.n_mel);
+  memcpy(&filters.numMel, ptr, sizeof(filters.numMel));
+  ptr += sizeof(filters.numMel);
 
-  memcpy(&filters.n_fft, ptr, sizeof(filters.n_fft));
-  ptr += sizeof(filters.n_fft);
+  memcpy(&filters.numFFT, ptr, sizeof(filters.numFFT));
+  ptr += sizeof(filters.numFFT);
 
   // Allocate memory for the vector and copy data
-  filters.data.resize(filters.n_mel * filters.n_fft);
-  memcpy(filters.data.data(), ptr, filters.n_mel * filters.n_fft * sizeof(float));
-  ptr += filters.n_mel * filters.n_fft * sizeof(float);
+  filters.data.resize(filters.numMel * filters.numFFT);
+  memcpy(filters.data.data(), ptr, filters.numMel * filters.numFFT * sizeof(float));
+  ptr += filters.numMel * filters.numFFT * sizeof(float);
 
   // Load vocab
   int32_t n_vocab = 0;
   memcpy(&n_vocab, ptr, sizeof(n_vocab));
   ptr += sizeof(n_vocab);
 
-  g_vocab.n_vocab = n_vocab;
+  gVocab.numTokens = n_vocab;  // Update the vocabulary size based on whisper.h
   printf("\nn_vocab:%d\n", (int)n_vocab);
 
   char word[256]; // Assuming a maximum word length of 255 characters
@@ -96,7 +97,7 @@ int main(int argc, char* argv[]) {
     word[len] = '\0'; // Null-terminate the string
     ptr += len;
 
-    g_vocab.id_to_token[i] = std::string(word);
+    gVocab.idToToken[i] = std::string(word);
   }
   
   // Generate input_features for Audio file
@@ -116,7 +117,7 @@ int main(int argc, char* argv[]) {
         return 4;
       }
 
-      if (wav.sampleRate != WHISPER_SAMPLE_RATE) {
+      if (wav.sampleRate != kWhisperSampleRate) {  // Update to use the correct sample rate
         fprintf(stderr, "%s: WAV file '%s' must be 16 kHz\n", argv[0], pcmfilename);
         return 5;
       }
@@ -146,14 +147,14 @@ int main(int argc, char* argv[]) {
     }
 
     // Hack if the audio file size is less than 30ms, append with 0's
-    pcmf32.resize((WHISPER_SAMPLE_RATE * WHISPER_CHUNK_SIZE), 0);
-    if (!log_mel_spectrogram(pcmf32.data(), pcmf32.size(), WHISPER_SAMPLE_RATE, WHISPER_N_FFT, WHISPER_HOP_LENGTH, WHISPER_N_MEL, 1, filters, mel)) {
+    pcmf32.resize((kWhisperSampleRate * kWhisperChunkSize), 0);
+    if (!logMelSpectrogram(pcmf32.data(), pcmf32.size(), kWhisperSampleRate, kWhisperNFFT, kWhisperHopLength, kWhisperNMEL, 1, filters, mel)) {
       fprintf(stderr, "%s: failed to compute mel spectrogram\n", __func__);
       return -1;
     }
 
-    printf("\nmel.n_len%d\n", mel.n_len);
-    printf("\nmel.n_mel:%d\n", mel.n_mel);
+    printf("\nmel.n_len%d\n", mel.numFrames); // Update to use the correct struct members
+    printf("\nmel.n_mel:%d\n", mel.numMelFilters);    // Update to use the correct struct members
   }//end of audio file processing
 
   // Load tflite model
@@ -177,9 +178,11 @@ int main(int argc, char* argv[]) {
   // Get information about the memory area to use for the model's input.
   float* input = interpreter->typed_input_tensor<float>(0);
   if (argc == 2) {
-    memcpy(input, _content_input_features_bin, WHISPER_N_MEL * WHISPER_MEL_LEN * sizeof(float)); // to load pre-generated input_features
+    // Load pre-generated input_features
+    memcpy(input, _content_input_features_bin, kWhisperNMEL * kWhisperMelLen * sizeof(float));
   } else if (argc == 3) {
-    memcpy(input, mel.data.data(), mel.n_mel * mel.n_len * sizeof(float));
+    // Use the processed audio data as input
+    memcpy(input, mel.data.data(), mel.numMelFilters * mel.numFrames * sizeof(float)); // Update to use the correct struct members
   }
 
   gettimeofday(&start_time, NULL);
@@ -196,11 +199,11 @@ int main(int argc, char* argv[]) {
   std::string text = "";
 
   for (int i = 0; i < output_size; i++) {
-    if (output_int[i] == g_vocab.token_eot) {
+    if (output_int[i] == gVocab.tokenEOT) {
       break;
     }
-    if (output_int[i] < g_vocab.token_eot) {
-      text += whisper_token_to_str(output_int[i]);
+    if (output_int[i] < gVocab.tokenEOT) {
+      text += whisperTokenToString(output_int[i]);
     }
   }
 
@@ -212,6 +215,3 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
-
-
-

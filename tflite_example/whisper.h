@@ -1,117 +1,114 @@
-//Courtesy from @ggerganov https://github.com/ggerganov/whisper.cpp
+// Courtesy from @ggerganov https://github.com/ggerganov/whisper.cpp
 #include <iostream>
 #include <fstream>
 #include <thread>
 #include <sys/time.h>
+#include <vector>
+#include <map>
+#include <cmath>
+#include <string>
 
 #define DR_WAV_IMPLEMENTATION
 #include "dr_wav.h"
 
-int golden_generated_ids[21] = {50257,50362,1770,13,2264,346,353,318,262,46329,286,262,3504,6097,11,290,356,389,9675,284,7062};
+// Constants
+constexpr int kNumGoldenGeneratedIDs = 21;
+constexpr int kGoldenGeneratedIDs[kNumGoldenGeneratedIDs] = {50257, 50362, 1770, 13, 2264, 346, 353, 318, 262, 46329, 286, 262, 3504, 6097, 11, 290, 356, 389, 9675, 284, 7062};
+constexpr int kWhisperSampleRate = 16000;
+constexpr int kWhisperNFFT = 400;
+constexpr int kWhisperNMEL = 80;
+constexpr int kWhisperHopLength = 160;
+constexpr int kWhisperChunkSize = 30;
+constexpr int kWhisperMelLen = 3000;
 
-struct whisper_vocab {
-    using id    = int32_t;
-    using token = std::string;
+// Structure for Whisper Vocab
+struct WhisperVocab {
+    using ID = int32_t;
+    using Token = std::string;
 
-    int n_vocab = 51864;
+    int numTokens = 51864;
+    std::map<ID, Token> idToToken;
 
+    ID tokenEOT = 50256;
+    ID tokenSOT = 50257;
+    ID tokenPrev = 50360;
+    ID tokenSOLM = 50361; // ??
+    ID tokenNot = 50362;  // no timestamps
+    ID tokenBeg = 50363;
 
-    std::map<id, token> id_to_token;
+    // Available tasks
+    static const ID tokenTransliterate = 50358;
+    static const ID tokenTranscribe = 50359;
 
-    id token_eot  = 50256;
-    id token_sot  = 50257;
-    id token_prev = 50360;
-    id token_solm = 50361; // ??
-    id token_not  = 50362; // no timestamps
-    id token_beg  = 50363;
-
-    // available tasks
-    static const id token_translwordate  = 50358;
-    static const id token_transcribe = 50359;
-
-    bool is_multilingual() const {
-        return n_vocab == 51865;
+    bool isMultilingual() const {
+        return numTokens == 51865;
     }
 };
 
-//whisper vocab global variable
-whisper_vocab g_vocab;
+// Global Whisper Vocab
+WhisperVocab gVocab;
 
-//Added audio front end processing from https://github.com/ggerganov/whisper.cpp
-// third-party utilities
-// use your favorite implementations
-#define WHISPER_SAMPLE_RATE 16000
-#define WHISPER_N_FFT       400
-#define WHISPER_N_MEL       80
-#define WHISPER_HOP_LENGTH  160
-#define WHISPER_CHUNK_SIZE  30
-#define WHISPER_MEL_LEN     3000
-
-struct whisper_filters {
-    int32_t n_mel;
-    int32_t n_fft;
-
+// Structure for Whisper Filters
+struct WhisperFilters {
+    int32_t numMel;
+    int32_t numFFT;
     std::vector<float> data;
 };
 
-struct whisper_mel {
-    int n_len;
-    int n_mel;
-
+// Structure for Mel Spectrogram
+struct WhisperMelSpectrogram {
+    int numFrames;
+    int numMelFilters;
     std::vector<float> data;
 };
 
-void print(std::vector <float> const &a) {
-   std::cout << "The vector elements are : ";
-
-   for(int i=0; i < a.size(); i++)
-   std::cout << a.at(i) << ' ';
+// Function to print vector elements
+void printVector(const std::vector<float> &vec) {
+    std::cout << "Vector elements: ";
+    for (const float &value : vec) {
+        std::cout << value << ' ';
+    }
+    std::cout << '\n';
 }
 
-const char * whisper_token_to_str(int token) {
-    return g_vocab.id_to_token.at(token).c_str();
+// Function to convert Whisper token to string
+const char *whisperTokenToString(int token) {
+    return gVocab.idToToken.at(token).c_str();
 }
 
-// naive Discrete Fourier Transform
-// input is real-valued
-// output is complex-valued
-void dft(const std::vector<float> & in, std::vector<float> & out) {
-    int N = in.size();
-
-    out.resize(N*2);
+// Naive Discrete Fourier Transform
+void dft(const std::vector<float> &input, std::vector<float> &output) {
+    int N = input.size();
+    output.resize(N * 2);
 
     for (int k = 0; k < N; k++) {
-        float re = 0;
-        float im = 0;
+        float real = 0;
+        float imag = 0;
 
         for (int n = 0; n < N; n++) {
-            float angle = 2*M_PI*k*n/N;
-            re += in[n]*cos(angle);
-            im -= in[n]*sin(angle);
+            float angle = 2 * M_PI * k * n / N;
+            real += input[n] * cos(angle);
+            imag -= input[n] * sin(angle);
         }
 
-        out[k*2 + 0] = re;
-        out[k*2 + 1] = im;
+        output[k * 2 + 0] = real;
+        output[k * 2 + 1] = imag;
     }
 }
 
 // Cooley-Tukey FFT
-// poor man's implementation - use something better
-// input is real-valued
-// output is complex-valued
-void fft(const std::vector<float> & in, std::vector<float> & out) {
-    out.resize(in.size()*2);
-
-    int N = in.size();
+void fft(const std::vector<float> &input, std::vector<float> &output) {
+    output.resize(input.size() * 2);
+    int N = input.size();
 
     if (N == 1) {
-        out[0] = in[0];
-        out[1] = 0;
+        output[0] = input[0];
+        output[1] = 0;
         return;
     }
 
-    if (N%2 == 1) {
-        dft(in, out);
+    if (N % 2 == 1) {
+        dft(input, output);
         return;
     }
 
@@ -120,111 +117,90 @@ void fft(const std::vector<float> & in, std::vector<float> & out) {
 
     for (int i = 0; i < N; i++) {
         if (i % 2 == 0) {
-            even.push_back(in[i]);
+            even.push_back(input[i]);
         } else {
-            odd.push_back(in[i]);
+            odd.push_back(input[i]);
         }
     }
 
-    std::vector<float> even_fft;
-    std::vector<float> odd_fft;
+    std::vector<float> evenFFT;
+    std::vector<float> oddFFT;
 
-    fft(even, even_fft);
-    fft(odd, odd_fft);
+    fft(even, evenFFT);
+    fft(odd, oddFFT);
 
-    for (int k = 0; k < N/2; k++) {
-        float theta = 2*M_PI*k/N;
-
+    for (int k = 0; k < N / 2; k++) {
+        float theta = 2 * M_PI * k / N;
         float re = cos(theta);
         float im = -sin(theta);
 
-        float re_odd = odd_fft[2*k + 0];
-        float im_odd = odd_fft[2*k + 1];
+        float reOdd = oddFFT[2 * k + 0];
+        float imOdd = oddFFT[2 * k + 1];
 
-        out[2*k + 0] = even_fft[2*k + 0] + re*re_odd - im*im_odd;
-        out[2*k + 1] = even_fft[2*k + 1] + re*im_odd + im*re_odd;
+        output[2 * k + 0] = evenFFT[2 * k + 0] + re * reOdd - im * imOdd;
+        output[2 * k + 1] = evenFFT[2 * k + 1] + re * imOdd + im * reOdd;
 
-        out[2*(k + N/2) + 0] = even_fft[2*k + 0] - re*re_odd + im*im_odd;
-        out[2*(k + N/2) + 1] = even_fft[2*k + 1] - re*im_odd - im*re_odd;
+        output[2 * (k + N / 2) + 0] = evenFFT[2 * k + 0] - re * reOdd + im * imOdd;
+        output[2 * (k + N / 2) + 1] = evenFFT[2 * k + 1] - re * imOdd - im * reOdd;
     }
 }
 
-// ref: https://github.com/openai/whisper/blob/main/whisper/audio.py#L92-L124
-bool log_mel_spectrogram(
-    const float * samples,
-    const int n_samples,
-    const int sample_rate,
-    const int fft_size,
-    const int fft_step,
-    const int n_mel,
-    const int n_threads,
-    const whisper_filters & filters,
-    whisper_mel & mel) {
-
+// Function to compute log mel spectrogram
+bool logMelSpectrogram(const float *samples, const int numSamples, const int sampleRate,
+                       const int fftSize, const int fftStep, const int numMelFilters,
+                       const int numThreads, const WhisperFilters &filters,
+                       WhisperMelSpectrogram &melSpectrogram) {
     // Hanning window
-    std::vector<float> hann;
-    hann.resize(fft_size);
-    for (int i = 0; i < fft_size; i++) {
-        hann[i] = 0.5*(1.0 - cos((2.0*M_PI*i)/(fft_size)));
+    std::vector<float> hann(fftSize);
+    for (int i = 0; i < fftSize; i++) {
+        hann[i] = 0.5 * (1.0 - cos((2.0 * M_PI * i) / fftSize));
     }
 
-    mel.n_mel = n_mel;
-    mel.n_len = (n_samples)/fft_step;
-    mel.data.resize(mel.n_mel*mel.n_len);
+    melSpectrogram.numMelFilters = numMelFilters;
+    melSpectrogram.numFrames = (numSamples) / fftStep;
+    melSpectrogram.data.resize(melSpectrogram.numMelFilters * melSpectrogram.numFrames);
 
-    const int n_fft = 1 + fft_size/2;
+    const int numFFT = 1 + fftSize / 2;
 
-    //printf("%s: n_samples = %d, n_len = %d\n", __func__, n_samples, mel.n_len);
-    //printf("%s: recording length: %f s\n", __func__, (float) n_samples/sample_rate);
-
-    std::vector<std::thread> workers(n_threads);
-    for (int iw = 0; iw < n_threads; ++iw) {
-        workers[iw] = std::thread([&](int ith) {
-            std::vector<float> fft_in;
-            fft_in.resize(fft_size);
-            for (int i = 0; i < fft_size; i++) {
-                fft_in[i] = 0.0;
+    std::vector<std::thread> workers(numThreads);
+    for (int threadIndex = 0; threadIndex < numThreads; ++threadIndex) {
+        workers[threadIndex] = std::thread([&](int threadIdx) {
+            std::vector<float> fftInput(fftSize);
+            for (int i = 0; i < fftSize; i++) {
+                fftInput[i] = 0.0;
             }
 
-            std::vector<float> fft_out;
-            fft_out.resize(2*fft_size);
+            std::vector<float> fftOutput(2 * fftSize);
 
-            for (int i = ith; i < mel.n_len; i += n_threads) {
-                const int offset = i*fft_step;
+            for (int i = threadIdx; i < melSpectrogram.numFrames; i += numThreads) {
+                const int offset = i * fftStep;
 
-                // apply Hanning window
-                for (int j = 0; j < fft_size; j++) {
-                    if (offset + j < n_samples) {
-                        fft_in[j] = hann[j]*samples[offset + j];
+                // Apply Hanning window
+                for (int j = 0; j < fftSize; j++) {
+                    if (offset + j < numSamples) {
+                        fftInput[j] = hann[j] * samples[offset + j];
                     } else {
-                        fft_in[j] = 0.0;
+                        fftInput[j] = 0.0;
                     }
                 }
 
-                // FFT -> mag^2
-                fft(fft_in, fft_out);
+                // FFT -> magnitude^2
+                fft(fftInput, fftOutput);
 
-                for (int j = 0; j < fft_size; j++) {
-                    fft_out[j] = (fft_out[2*j + 0]*fft_out[2*j + 0] + fft_out[2*j + 1]*fft_out[2*j + 1]);
+                for (int j = 0; j < fftSize; j++) {
+                    fftOutput[j] = (fftOutput[2 * j + 0] * fftOutput[2 * j + 0] +
+                                    fftOutput[2 * j + 1] * fftOutput[2 * j + 1]);
                 }
-                for (int j = 1; j < fft_size/2; j++) {
-                    //if (i == 0) {
-                    //    printf("%d: %f %f\n", j, fft_out[j], fft_out[fft_size - j]);
-                    //}
-                    fft_out[j] += fft_out[fft_size - j];
-                }
-                if (i == 0) {
-                    //for (int j = 0; j < fft_size; j++) {
-                    //    printf("%d: %e\n", j, fft_out[j]);
-                    //}
+                for (int j = 1; j < fftSize / 2; j++) {
+                    fftOutput[j] += fftOutput[fftSize - j];
                 }
 
-                // mel spectrogram
-                for (int j = 0; j < mel.n_mel; j++) {
+                // Mel spectrogram
+                for (int j = 0; j < numMelFilters; j++) {
                     double sum = 0.0;
 
-                    for (int k = 0; k < n_fft; k++) {
-                        sum += fft_out[k]*filters.data[j*n_fft + k];
+                    for (int k = 0; k < numFFT; k++) {
+                        sum += fftOutput[k] * filters.data[j * numFFT + k];
                     }
                     if (sum < 1e-10) {
                         sum = 1e-10;
@@ -232,33 +208,31 @@ bool log_mel_spectrogram(
 
                     sum = log10(sum);
 
-                    mel.data[j*mel.n_len + i] = sum;
+                    melSpectrogram.data[j * melSpectrogram.numFrames + i] = sum;
                 }
             }
-        }, iw);
+        },threadIndex);
     }
 
-    for (int iw = 0; iw < n_threads; ++iw) {
-        workers[iw].join();
+    for (int threadIndex = 0; threadIndex < numThreads; ++threadIndex) {
+        workers[threadIndex].join();
     }
 
-    // clamping and normalization
-    double mmax = -1e20;
-    for (int i = 0; i < mel.n_mel*mel.n_len; i++) {
-        if (mel.data[i] > mmax) {
-            mmax = mel.data[i];
+    // Clamping and normalization
+    double maxVal = -1e20;
+    for (int i = 0; i < melSpectrogram.numMelFilters * melSpectrogram.numFrames; i++) {
+        if (melSpectrogram.data[i] > maxVal) {
+            maxVal = melSpectrogram.data[i];
         }
     }
-    //printf("%s: max = %f\n", __func__, mmax);
+    maxVal -= 8.0;
 
-    mmax -= 8.0;
-
-    for (int i = 0; i < mel.n_mel*mel.n_len; i++) {
-        if (mel.data[i] < mmax) {
-            mel.data[i] = mmax;
+    for (int i = 0; i < melSpectrogram.numMelFilters * melSpectrogram.numFrames; i++) {
+        if (melSpectrogram.data[i] < maxVal) {
+            melSpectrogram.data[i] = maxVal;
         }
 
-        mel.data[i] = (mel.data[i] + 4.0)/4.0;
+        melSpectrogram.data[i] = (melSpectrogram.data[i] + 4.0) / 4.0;
     }
 
     return true;
