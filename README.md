@@ -38,6 +38,14 @@ To get started with this enhanced Whisper model, follow these steps:
 
 You can find a sample Android app in the [android_example](android_example) folder that demonstrates how to use the Whisper TFLite model for transcription on Android devices.
 
+## DTLN quantized tflite model
+
+Our overarching objective is to incorporate real-time noise suppression through the utilization of a quantized [DTLN](https://github.com/breizhn/DTLN) tflite model, delivering noise-reduced audio data to the whisper tflite model.
+
+Courtesy from [breizhn/DTLN](https://github.com/breizhn/DTLN)
+
+[DTLN Paper](https://arxiv.org/pdf/2005.07551.pdf)
+
 ## TODO
 
  - [ ] Considering adding DTLN noise cancellation tflite model to improve whisper ASR accuracy in noisy environments.
