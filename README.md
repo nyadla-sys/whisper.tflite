@@ -50,6 +50,11 @@ Courtesy from [breizhn/DTLN](https://github.com/breizhn/DTLN)
 
  - [ ] Considering adding DTLN noise cancellation tflite model to improve whisper ASR accuracy in noisy environments.
 
+## Here are some noteworthy links for comparing TFLite with other Whisper models:
+
+[Whisper's Comparative Analysis](https://alphacephei.com/nsh/2022/12/11/whisper-other.html)
+[Speech Recognition Experiments Repository](https://github.com/fquirin/speech-recognition-experiments)
+[OpenVoiceOS' Whisper TFLite Plugin](https://github.com/OpenVoiceOS/ovos-stt-plugin-whisper-tflite)
 
 ## Stay Updated
 
