@@ -61,3 +61,19 @@ Courtesy from [breizhn/DTLN](https://github.com/breizhn/DTLN)
 Stay connected to this repository for further developments and updates related to the Whisper enhanced TFLite model. We are constantly working to improve its performance and compatibility with various edge devices.
 
 If you have any questions or encounter any issues, please don't hesitate to open an issue in this repository. We'll be happy to assist you!
+
+## Citing:
+
+If you are using the DTLN model, please cite:
+
+```bash
+@inproceedings{Westhausen2020,
+  author={Nils L. Westhausen and Bernd T. Meyer},
+  title={{Dual-Signal Transformation LSTM Network for Real-Time Noise Suppression}},
+  year=2020,
+  booktitle={Proc. Interspeech 2020},
+  pages={2477--2481},
+  doi={10.21437/Interspeech.2020-2631},
+  url={http://dx.doi.org/10.21437/Interspeech.2020-2631}
+}
+```
