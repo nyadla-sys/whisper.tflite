@@ -34,7 +34,7 @@ jobs:
            mkdir minimal_build
            cd minimal_build
            cmake ../tensorflow_src/tensorflow/lite/examples/minimal
-           # cmake --build . -j
+           cmake --build . -j 8
 
     - name: Test
       working-directory: ${{github.workspace}}/tflite_example/minimal_build
