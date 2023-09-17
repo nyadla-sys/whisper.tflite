@@ -30,12 +30,10 @@ jobs:
            cd ${{github.workspace}}/tflite_example
            git clone https://github.com/tensorflow/tensorflow.git tensorflow_src
            cp minimal.cc tensorflow_src/tensorflow/lite/examples/minimal/
-           ls
-           pwd
-           # cp *.h  tensorflow_src/tensorflow/lite/examples/minimal/
-           # mkdir minimal_build
-           # cd minimal_build
-           # cmake ../tensorflow_src/tensorflow/lite/examples/minimal
+           cp *.h  tensorflow_src/tensorflow/lite/examples/minimal/
+           mkdir minimal_build
+           cd minimal_build
+           cmake ../tensorflow_src/tensorflow/lite/examples/minimal
            # cmake --build . -j
 
     - name: Test
