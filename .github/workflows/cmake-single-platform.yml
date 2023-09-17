@@ -27,9 +27,11 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
            cmake --version
-           # cd ${{github.workspace}}/tflite_example
-           # git clone https://github.com/tensorflow/tensorflow.git tensorflow_src
-           # cp minimal.cc tensorflow_src/tensorflow/lite/examples/minimal/
+           cd ${{github.workspace}}/tflite_example
+           git clone https://github.com/tensorflow/tensorflow.git tensorflow_src
+           cp minimal.cc tensorflow_src/tensorflow/lite/examples/minimal/
+           ls
+           pwd
            # cp *.h  tensorflow_src/tensorflow/lite/examples/minimal/
            # mkdir minimal_build
            # cd minimal_build
