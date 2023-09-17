@@ -26,21 +26,22 @@ jobs:
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
-           sudo apt-get install git-lfs
-           git lfs install
-           # cmake --version
-           # cd ${{github.workspace}}/tflite_example
-           # git clone https://github.com/tensorflow/tensorflow.git tensorflow_src
-           # cp minimal.cc tensorflow_src/tensorflow/lite/examples/minimal/
-           # cp *.h  tensorflow_src/tensorflow/lite/examples/minimal/
-           # mkdir minimal_build
-           # cd minimal_build
-           # cmake ../tensorflow_src/tensorflow/lite/examples/minimal
-           # cmake --build . -j 8
+           cmake --version
+           cd ${{github.workspace}}/tflite_example
+           git clone https://github.com/tensorflow/tensorflow.git tensorflow_src
+           cp minimal.cc tensorflow_src/tensorflow/lite/examples/minimal/
+           cp *.h  tensorflow_src/tensorflow/lite/examples/minimal/
+           mkdir minimal_build
+           cd minimal_build
+           cmake ../tensorflow_src/tensorflow/lite/examples/minimal
+           cmake --build . -j 8
 
     - name: Test
       working-directory: ${{github.workspace}}/tflite_example/minimal_build
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ./minimal ../../models/whisper-tiny-en.tflite ../samples/jfk.wav
+      run: |
+           sudo apt-get install git-lfs
+           git lfs install
+           ./minimal ../../models/whisper-tiny-en.tflite ../samples/jfk.wav
 
