@@ -7,7 +7,7 @@ This project contains an enhanced version of the Whisper quantized TFLite model 
 Before you start using this enhanced Whisper model, you need to install Git Large File Storage (LFS) on your system. This is required because the `whisper-tiny.en.tflite` model used in this project is stored using Git LFS.
 
    
-To install Git LFS (Large File Storage), you can use below command:
+To install Git LFS (Large File Storage), you can use below command: 
 
    ```bash
    git lfs install
