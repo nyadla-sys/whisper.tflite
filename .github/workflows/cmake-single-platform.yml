@@ -26,15 +26,17 @@ jobs:
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
-           cmake --version
-           cd ${{github.workspace}}/tflite_example
-           git clone https://github.com/tensorflow/tensorflow.git tensorflow_src
-           cp minimal.cc tensorflow_src/tensorflow/lite/examples/minimal/
-           cp *.h  tensorflow_src/tensorflow/lite/examples/minimal/
-           mkdir minimal_build
-           cd minimal_build
-           cmake ../tensorflow_src/tensorflow/lite/examples/minimal
-           cmake --build . -j 8
+           apt-get install git-lfs
+           git lfs install
+           # cmake --version
+           # cd ${{github.workspace}}/tflite_example
+           # git clone https://github.com/tensorflow/tensorflow.git tensorflow_src
+           # cp minimal.cc tensorflow_src/tensorflow/lite/examples/minimal/
+           # cp *.h  tensorflow_src/tensorflow/lite/examples/minimal/
+           # mkdir minimal_build
+           # cd minimal_build
+           # cmake ../tensorflow_src/tensorflow/lite/examples/minimal
+           # cmake --build . -j 8
 
     - name: Test
       working-directory: ${{github.workspace}}/tflite_example/minimal_build
