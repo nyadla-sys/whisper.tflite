@@ -1,3 +1,7 @@
+# Integrate Whisper TFLite for Enhanced Mobile App Performance
+
+If you're interested in incorporating the Whisper TFLite model into your iOS and Android applications, please don't hesitate to reach out to us. Our project features an upgraded iteration of the Whisper quantized TFLite model, finely tuned for optimal performance on both Android and iOS platforms. This model is tailored to excel on edge devices, rendering it versatile for various application scenarios. Contact us for further details and collaboration opportunities
+
 # Whisper Enhanced Quantized TFLite Model
 
 This project contains an enhanced version of the Whisper quantized TFLite model optimized for both Android and iOS platforms. The model is designed to perform well on edge devices, making it suitable for a wide range of applications.
