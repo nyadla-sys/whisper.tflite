@@ -1,3 +1,6 @@
+
+<img src="https://github.blog/wp-content/uploads/2020/09/github-stars-logo_Color.png" alt="drawing" width="25"/> **Please, star the project on github (see top-right corner) if you appreciate my contribution to the community!**
+
 # Whisper Enhanced Quantized TFLite Model
 
 This project contains an enhanced version of the Whisper quantized TFLite model optimized for both Android and iOS platforms. The model is designed to perform well on edge devices, making it suitable for a wide range of applications.
