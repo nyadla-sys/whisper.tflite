@@ -10,7 +10,7 @@ Please note that Whisper's model weights use Git Large File Storage (LFS), so yo
 
 ```bash
 git clone https://github.com/nyadla-sys/whisper.tflite.git
-cd whisper.tflite/tflite_example
+cd whisper.tflite/whisper_native
 ```
 ## Step 2: Install CMake
 Make sure you have CMake version 3.16 or higher installed. On Ubuntu, you can install it with:
