@@ -1,108 +1,184 @@
+# Whisper Android — Offline Speech Recognition
 
-# Offline Speech Recognition with OpenAI Whisper and TensorFlow Lite
+Offline speech recognition for Android using OpenAI Whisper quantized TFLite models.
 
-This guide explains how to integrate Whisper and Recorder class in Android apps for audio recording and speech recognition.
+## Prerequisites
 
-## Whisper ASR Integration Guide
+- Android Studio Hedgehog or newer
+- Android NDK (installed via SDK Manager)
+- CMake 3.22+ (installed via SDK Manager)
+- Android device or emulator with API 26+
 
-Here are separate code snippets for using `Whisper` and `Recorder`:
+## Build Instructions
 
-### Whisper (Speech Recognition)
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/nyadla-sys/whisper.tflite.git
+   cd whisper.tflite/whisper_android
+   ```
 
-**Initialization and Configuration:**
+2. Open the `whisper_android` folder in Android Studio (File → Open).
+
+3. Let Gradle sync complete. The project uses:
+   - AGP 8.2.2
+   - `compileSdk 34`, `minSdk 26`
+   - Supported ABIs: `armeabi-v7a`, `arm64-v8a`
+
+4. Pre-built TFLite `.so` libraries are already included under:
+   ```
+   app/src/main/cpp/tf-lite-api/generated-libs/
+   ├── arm64-v8a/libtensorflowlite.so
+   ├── armeabi-v7a/libtensorflowlite.so
+   └── x86_64/libtensorflowlite.so
+   ```
+   No separate download is needed.
+
+5. Model and vocab files are already bundled in `app/src/main/assets/`:
+   | Model file | Vocab file | Language |
+   |---|---|---|
+   | `whisper-tiny-en.tflite` | `filters_vocab_en.bin` | English only |
+   | `whisper-tiny.tflite` | `filters_vocab_multilingual.bin` | Multilingual |
+
+6. Build a release APK (signed with the release keystore):
+   ```bash
+   ./gradlew assembleRelease
+   ```
+   Output: `app/build/outputs/apk/release/app-release.apk`
+
+   Or build a debug APK:
+   ```bash
+   ./gradlew assembleDebug
+   ```
+   Or use the Run button in Android Studio.
+
+## Running Tests
+
+JVM property-based tests (jqwik 1.8.4):
+```bash
+./gradlew test
+```
+
+## Models
+
+Use the English-only model for better performance when you only need English transcription.
+Use the multilingual model when transcribing other languages.
+
+## Whisper API Integration
+
+### Initialization
+
 ```java
-// Initialize Whisper
-Whisper mWhisper = new Whisper(this); // Create Whisper instance
+Whisper mWhisper = new Whisper(this);
 
-// Load model and vocabulary for Whisper
-String modelPath = getFilePath("whisper-tiny.tflite"); // Provide model file path
-String vocabPath = getFilePath("filters_vocab_multilingual.bin"); // Provide vocabulary file path
-mWhisper.loadModel(modelPath, vocabPath, true); // Load model and set multilingual mode
+// English only
+String modelPath = getFilePath("whisper-tiny-en.tflite");
+String vocabPath = getFilePath("filters_vocab_en.bin");
+mWhisper.loadModel(modelPath, vocabPath, false); // false = English only
 
-// Set a listener for Whisper to handle updates and results
+// Multilingual
+// String modelPath = getFilePath("whisper-tiny.tflite");
+// String vocabPath = getFilePath("filters_vocab_multilingual.bin");
+// mWhisper.loadModel(modelPath, vocabPath, true); // true = multilingual
+
 mWhisper.setListener(new IWhisperListener() {
     @Override
     public void onUpdateReceived(String message) {
-        // Handle Whisper status updates
+        // status updates
     }
 
     @Override
     public void onResultReceived(String result) {
-        // Handle transcribed results
+        // transcription result
     }
 });
 ```
 
-**Transcription:**
+### Transcription
+
+Audio must be 16kHz, mono, 16-bit WAV.
+
 ```java
-// Set the audio file path for transcription. Audio format should be in 16K, mono, 16bits
-String waveFilePath = getFilePath("your_audio_file.wav"); // Provide audio file path
-mWhisper.setFilePath(waveFilePath); // Set audio file path
+mWhisper.setFilePath(waveFilePath);
+mWhisper.setAction(Whisper.ACTION_TRANSCRIBE);
+mWhisper.start();
 
-// Start transcription
-mWhisper.setAction(Whisper.ACTION_TRANSCRIBE); // Set action to transcription
-mWhisper.start(); // Start transcription
-
-// Perform other operations
-// Add your additional code here
-
-// Stop transcription
-mWhisper.stop(); // Stop transcription
+// later...
+mWhisper.stop();
 ```
 
-### Recorder (Audio Recording)
+### Recorder
 
-**Initialization and Configuration:**
 ```java
-// Initialize Recorder
-Recorder mRecorder = new Recorder(this); // Create Recorder instance
+Recorder mRecorder = new Recorder(this);
 
-// Set a listener for Recorder to handle updates and audio data
 mRecorder.setListener(new IRecorderListener() {
     @Override
-    public void onUpdateReceived(String message) {
-        // Handle Recorder status updates
-    }
+    public void onUpdateReceived(String message) { }
 
     @Override
     public void onDataReceived(float[] samples) {
-        // Handle audio data received during recording
-        // You can forward this data to Whisper for live recognition using writeBuffer()
+        // optionally forward to Whisper for live recognition
         // mWhisper.writeBuffer(samples);
     }
 });
+
+mRecorder.setFilePath(waveFilePath);
+mRecorder.start();
+
+// later...
+mRecorder.stop();
 ```
 
-**Recording:**
-```java
-// Check and request recording permissions
-checkRecordPermission(); // Check and request recording permissions
+## Release Signing
 
-// Set the audio file path for recording. It record audio in 16K, mono, 16bits format
-String waveFilePath = getFilePath("your_audio_file.wav"); // Provide audio file path
-mRecorder.setFilePath(waveFilePath); // Set audio file path
+The keystore and `keystore.properties` are excluded from version control. To build a signed release APK:
 
-// Start recording
-mRecorder.start(); // Start recording
+1. The keystore is at `app/whisper-release.keystore` (generated once, keep it safe)
+2. `keystore.properties` in the `whisper_android/` root holds the credentials — create it if missing:
+   ```
+   storeFile=whisper-release.keystore
+   storePassword=<your-store-password>
+   keyAlias=whisper-release
+   keyPassword=<your-key-password>
+   ```
+3. Run `./gradlew assembleRelease`
 
-// Perform other operations
-// Add your additional code here
+Never commit `keystore.properties` or the `.keystore` file to version control.
 
-// Stop recording
-mRecorder.stop(); // Stop recording
+## Sideload the Pre-built APK
+
+A pre-built APK is available in the `pre_built_apk/` folder if you want to try the app without building from source.
+
+### Enable Unknown Sources on your Android device
+
+1. Go to Settings → Apps (or Privacy/Security depending on your device)
+2. Tap "Install unknown apps" or "Special app access"
+3. Select the app you'll use to install (e.g. Files, Chrome) and toggle "Allow from this source"
+
+### Install via ADB (recommended)
+
+Make sure ADB is installed and USB debugging is enabled on your device (Settings → Developer Options → USB Debugging).
+
+```bash
+adb install whisper_android/pre_built_apk/WhisperASR.apk
 ```
 
-Please adapt these code snippets to your specific use case, provide the correct file paths, and handle exceptions appropriately in your application.
+If you get a signature mismatch from a previous install:
+```bash
+adb uninstall com.whispertflite
+adb install whisper_android/pre_built_apk/WhisperASR.apk
+```
 
-**Note**: Ensure that you have the necessary permissions, error handling, and file path management in your application when using the `Recorder` class.
+### Install via file transfer
 
+1. Copy `pre_built_apk/WhisperASR.apk` to your Android device (USB, Google Drive, email, etc.)
+2. Open a file manager on the device and tap the APK
+3. Tap "Install" when prompted
 
-## Demo Video
-[![Video](https://img.youtube.com/vi/w9pohi9NQrg/0.jpg)](https://www.youtube.com/watch?v=w9pohi9NQrg)
+### Permissions required
 
-## Important Note
+The app will request microphone permission on first launch. Grant it to enable recording and transcription.
 
-Whisper ASR is a powerful tool for transcribing speech into text. However, keep in mind that handling audio data and transcriptions may require careful synchronization and error handling in your Android application to ensure a smooth user experience.
+## Demo
 
-
-Enjoy using the Whisper ASR Android app to enhance your speech recognition capabilities!
+[![Demo Video](https://img.youtube.com/vi/w9pohi9NQrg/0.jpg)](https://www.youtube.com/watch?v=w9pohi9NQrg)
