@@ -14,7 +14,5 @@
 .externalNativeBuild
 .cxx
 local.properties
-.kiro/
-.vscode/
 .jqwik-database
 **/.jqwik-database
