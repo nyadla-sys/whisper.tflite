@@ -66,6 +66,12 @@ std::vector<float> readWAVFile(const char* filename) {
     std::cout << "Sample Rate: " << wav_header.sample_rate << std::endl;
     std::cout << "Bits Per Sample: " << wav_header.bits_per_sample << std::endl;
 
+    // Validate sample rate: only 16000 Hz is supported
+    if (wav_header.sample_rate != 16000) {
+        std::cerr << "Unsupported sample rate: " << wav_header.sample_rate << " (expected 16000)" << std::endl;
+        return std::vector<float>();
+    }
+
     // Calculate the number of samples
     uint32_t num_samples = wav_header.wav_size / wav_header.block_align;
 

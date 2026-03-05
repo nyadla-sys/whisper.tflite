@@ -20,7 +20,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        // Specify the ABIs to exclude
+        // Only ABIs with compatible pre-built libtensorflowlite.so
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
@@ -45,6 +45,14 @@ android {
     kotlinOptions {
         jvmTarget = '11'
     }
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+        }
+        unitTests {
+            returnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
@@ -52,6 +60,11 @@ dependencies {
     implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.core:core-ktx:1.12.0'
+
+    testImplementation 'net.jqwik:jqwik:1.8.4'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
+    testRuntimeOnly 'net.jqwik:jqwik-engine:1.8.4'
 
     implementation 'org.tensorflow:tensorflow-lite:2.11.0'
     implementation 'org.tensorflow:tensorflow-lite-support:0.4.3'

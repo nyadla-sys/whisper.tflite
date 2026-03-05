@@ -34,6 +34,29 @@ if (NOT ANDROID)
     # Create an executable target that links with 'audioEngine' and 'tflite' libraries
     add_executable(my_audio_app main.cpp)
     target_link_libraries(my_audio_app PRIVATE audioEngine tflite)
+
+    # Fetch Google Test for C++ property tests
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG        v1.14.0
+    )
+    # Prevent overriding the parent project's compiler/linker settings on Windows
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+
+    enable_testing()
+
+    # C++ property tests (Property 4 and Property 11)
+    add_executable(tflite_engine_property_test
+        tests/tflite_engine_property_test.cpp
+    )
+    target_include_directories(tflite_engine_property_test PRIVATE ${INCLUDE_DIRS} ${CMAKE_CURRENT_LIST_DIR})
+    target_link_libraries(tflite_engine_property_test PRIVATE gtest_main)
+
+    include(GoogleTest)
+    gtest_discover_tests(tflite_engine_property_test)
 endif ()
 
 
