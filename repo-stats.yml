@@ -1,0 +1,24 @@
+name: GitHub Repo Stats
+
+on:
+  schedule:
+    # Runs daily at 00:15 UTC — the traffic API resets on a 14-day window,
+    # so daily snapshots ensure no data is lost.
+    - cron: "15 0 * * *"
+  workflow_dispatch: # allows manual trigger from the Actions tab
+
+jobs:
+  repo-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The action commits stats back to the repo, so it needs push access
+          token: ${{ secrets.REPO_STATS_TOKEN }}
+
+      - name: Run github-repo-stats
+        uses: jgehrcke/github-repo-stats@v1
+        with:
+          ghtoken: ${{ secrets.REPO_STATS_TOKEN }}
+          repository: nyadla-sys/whisper.tflite
+
