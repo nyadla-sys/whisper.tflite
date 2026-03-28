@@ -592,6 +592,27 @@ generated_ids = tflite_generate(input_features=input_features)["sequences"]
 transcription = processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
 print(f"TFLite transcription: {transcription}")
 
+# Test with Spanish sample for transcribe and translate (auto-language models only)
+if is_auto_language:
+    print("\n--- Spanish transcribe/translate test ---")
+    es_ds = load_dataset("google/fleurs", "es_419", split="test", streaming=True)
+    es_sample = next(iter(es_ds))
+    es_features = feature_extractor(
+        es_sample["audio"]["array"],
+        sampling_rate=es_sample["audio"]["sampling_rate"],
+        return_tensors="tf",
+    ).input_features
+
+    tflite_transcribe = interpreter.get_signature_runner("serving_transcribe")
+    es_ids = tflite_transcribe(input_features=es_features)["sequences"]
+    es_transcription = processor.batch_decode(es_ids, skip_special_tokens=False)[0]
+    print(f"Spanish transcribe: {es_transcription}")
+
+    tflite_translate = interpreter.get_signature_runner("serving_translate")
+    es_ids = tflite_translate(input_features=es_features)["sequences"]
+    es_translation = processor.batch_decode(es_ids, skip_special_tokens=False)[0]
+    print(f"Spanish translate:  {es_translation}")
+
 
 # ============================================================================
 # Step 7: Test with audio files (optional)
@@ -599,6 +620,25 @@ print(f"TFLite transcription: {transcription}")
 print("\n" + "=" * 60)
 print("Step 7: Testing with audio files (optional)")
 print("=" * 60)
+
+import platform
+print(f"  Host:     {platform.node()}")
+print(f"  OS:       {platform.system()} {platform.release()}")
+print(f"  Arch:     {platform.machine()}")
+print(f"  CPU:      {platform.processor() or 'N/A'}")
+try:
+    if platform.system() == "Darwin":
+        import subprocess as _sp
+        chip = _sp.check_output(["sysctl", "-n", "machdep.cpu.brand_string"], text=True).strip()
+        cores = _sp.check_output(["sysctl", "-n", "hw.ncpu"], text=True).strip()
+        mem = int(_sp.check_output(["sysctl", "-n", "hw.memsize"], text=True).strip()) // (1024**3)
+        print(f"  Chip:     {chip}")
+        print(f"  Cores:    {cores}")
+        print(f"  Memory:   {mem} GB")
+except Exception:
+    pass
+print(f"  Model:    {model_name}")
+print(f"  TFLite:   {tflite_model_path}")
 
 try:
     from faster_whisper import decode_audio
@@ -626,24 +666,29 @@ try:
     tflite_generate = interpreter.get_signature_runner(sig_name)
 
     if audio_folder_path:
-        print(f"\nTesting audio files from: {audio_folder_path}\n")
-        for audio_file_name in sorted(os.listdir(audio_folder_path)):
-            audio_file_path = os.path.join(audio_folder_path, audio_file_name)
+        jfk_path = os.path.join(audio_folder_path, "jfk.wav")
+        if os.path.isfile(jfk_path):
+            print(f"\nTesting: jfk.wav\n")
+            input_audio = decode_audio(jfk_path, sampling_rate=16000)
+            audio_duration = len(input_audio) / 16000
+            input_features = feature_extractor(
+                input_audio, sampling_rate=16000, return_tensors="tf"
+            ).input_features
 
-            if audio_file_name.endswith(".wav"):
-                print(f"Processing {audio_file_name}...")
-                input_audio = decode_audio(audio_file_path, sampling_rate=16000)
-                input_features = feature_extractor(
-                    input_audio, sampling_rate=16000, return_tensors="tf"
-                ).input_features
-
-                generated_ids = tflite_generate(input_features=input_features)[
-                    "sequences"
-                ]
-                transcription = processor.batch_decode(
-                    generated_ids, skip_special_tokens=True
-                )[0]
-                print(f"{transcription}\n")
+            import time
+            start_time = time.time()
+            generated_ids = tflite_generate(input_features=input_features)[
+                "sequences"
+            ]
+            inference_time = time.time() - start_time
+            transcription = processor.batch_decode(
+                generated_ids, skip_special_tokens=True
+            )[0]
+            rtf = inference_time / audio_duration if audio_duration > 0 else 0
+            print(f"{transcription}")
+            print(f"  Audio: {audio_duration:.1f}s | Inference: {inference_time:.2f}s | Real-Time Factor (RTF): {rtf:.2f}x")
+        else:
+            print(f"jfk.wav not found in {audio_folder_path}")
 
 except ImportError:
     print("faster-whisper not installed. Skipping audio file testing.")
