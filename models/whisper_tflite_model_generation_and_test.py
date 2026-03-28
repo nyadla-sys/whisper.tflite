@@ -31,16 +31,29 @@ parser = argparse.ArgumentParser(
     epilog="""
 Examples:
   # English-only model (single serving_default signature)
-  python3.9 whisper_tflite_model_generation_and_test.py
-  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-base.en
+  python3.9 whisper_tflite_model_generation_and_test.py                                          # -> whisper-tiny.en.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-base.en                   # -> whisper-base.en.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-small.en                  # -> whisper-small.en.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-medium.en                 # -> whisper-medium.en.tflite
 
   # Single-language model (serving_default forces that language)
-  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-base --language fr
-  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-base --language de
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-tiny --language en         # -> whisper-tiny.en.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-base --language fr         # -> whisper-base.fr.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-small --language de        # -> whisper-small.de.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-medium --language hi       # -> whisper-medium.hi.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-large --language ja        # -> whisper-large.ja.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-large-v3 --language es    # -> whisper-large-v3.es.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-turbo --language zh        # -> whisper-turbo.zh.tflite
 
   # Transcribe-translate model (auto-detect language, dual signatures)
-  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-base --language auto
-  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-small --language auto --task translate
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-tiny --language auto       # -> whisper-tiny-transcribe-translate.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-base --language auto       # -> whisper-base-transcribe-translate.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-small --language auto      # -> whisper-small-transcribe-translate.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-medium --language auto     # -> whisper-medium-transcribe-translate.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-large --language auto      # -> whisper-large-transcribe-translate.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-large-v3 --language auto  # -> whisper-large-v3-transcribe-translate.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-turbo --language auto      # -> whisper-turbo-transcribe-translate.tflite
+  python3.9 whisper_tflite_model_generation_and_test.py --model whisper-turbo --language auto      # -> whisper-turbo-transcribe-translate.tflite
 
 Output naming convention:
   .en model          -> whisper-tiny.en.tflite
@@ -48,12 +61,20 @@ Output naming convention:
   auto (transcribe-translate) -> whisper-base-transcribe-translate.tflite
 
 Supported models:
-  whisper-tiny.en    Tiny English-only model (~39M params)
-  whisper-tiny       Tiny multilingual model (~39M params)
-  whisper-base.en    Base English-only model (~74M params)
-  whisper-base       Base multilingual model (~74M params)
-  whisper-small.en   Small English-only model (~244M params)
-  whisper-small      Small multilingual model (~244M params)
+  whisper-tiny.en    Tiny English-only model (~39M params, ~1 GB VRAM, ~10x speed)
+  whisper-tiny       Tiny multilingual model (~39M params, ~1 GB VRAM, ~10x speed)
+  whisper-base.en    Base English-only model (~74M params, ~1 GB VRAM, ~7x speed)
+  whisper-base       Base multilingual model (~74M params, ~1 GB VRAM, ~7x speed)
+  whisper-small.en   Small English-only model (~244M params, ~2 GB VRAM, ~4x speed)
+  whisper-small      Small multilingual model (~244M params, ~2 GB VRAM, ~4x speed)
+  whisper-medium.en  Medium English-only model (~769M params, ~5 GB VRAM, ~2x speed)
+  whisper-medium     Medium multilingual model (~769M params, ~5 GB VRAM, ~2x speed)
+  whisper-large      Large multilingual model (~1550M params, ~10 GB VRAM, 1x speed)
+                     Uses whisper-large-v2 (compatible with transformers==4.33.0)
+  whisper-large-v3   Large v3 multilingual model (~1550M params, ~10 GB VRAM, 1x speed)
+                     Requires transformers>=4.36 (auto-installed)
+  whisper-turbo      Turbo multilingual model (~809M params, ~6 GB VRAM, ~8x speed)
+                     Requires transformers>=4.36 (auto-installed)
 
 Supported languages:
   en, fr, hi, ko, de, zh, ja, es, ar, ru, pt, it, nl, sv, pl, da, fi,
@@ -69,6 +90,10 @@ parser.add_argument(
         "whisper-tiny.en", "whisper-tiny",
         "whisper-base.en", "whisper-base",
         "whisper-small.en", "whisper-small",
+        "whisper-medium.en", "whisper-medium",
+        "whisper-large",
+        "whisper-large-v3",
+        "whisper-turbo",
     ],
     help="Whisper model name (default: whisper-tiny.en)",
 )
@@ -104,9 +129,19 @@ is_auto_language = args.language == "auto"
 # ============================================================================
 # Step 0: Install dependencies
 # ============================================================================
+# Models based on whisper-large-v3 tokenizer require newer transformers
+NEEDS_NEW_TRANSFORMERS = {"whisper-large-v3", "whisper-turbo"}
+if args.model in NEEDS_NEW_TRANSFORMERS:
+    transformers_version = "transformers==4.36.0"
+    safetensors_version = "safetensors==0.4.2"
+else:
+    transformers_version = "transformers==4.33.0"
+    safetensors_version = "safetensors>=0.3.1"
+
 subprocess.check_call([sys.executable, "-m", "pip", "install", "numpy<2"])
 subprocess.check_call([sys.executable, "-m", "pip", "install", "tensorflow==2.14.0"])
-subprocess.check_call([sys.executable, "-m", "pip", "install", "transformers==4.33.0"])
+subprocess.check_call([sys.executable, "-m", "pip", "install", safetensors_version])
+subprocess.check_call([sys.executable, "-m", "pip", "install", transformers_version])
 subprocess.check_call([sys.executable, "-m", "pip", "install", "datasets==2.14.0", "pyarrow==14.0.2", "fsspec==2023.6.0", "soundfile", "librosa"])
 subprocess.check_call([sys.executable, "-m", "pip", "install", "faster-whisper"])
 subprocess.check_call([sys.executable, "-m", "pip", "install", "torch"])
@@ -125,9 +160,16 @@ from transformers import (
     WhisperFeatureExtractor,
     TFWhisperForConditionalGeneration,
     WhisperTokenizer,
-    TFForceTokensLogitsProcessor,
-    TFLogitsProcessor,
 )
+
+# These classes may not exist in newer transformers versions
+try:
+    from transformers import TFForceTokensLogitsProcessor, TFLogitsProcessor
+    from transformers.generation.tf_logits_process import TFSuppressTokensLogitsProcessor
+except ImportError:
+    TFForceTokensLogitsProcessor = None
+    TFLogitsProcessor = None
+    TFSuppressTokensLogitsProcessor = None
 
 # Whisper supported languages (from openai/whisper tokenizer.py)
 WHISPER_LANGUAGES = {
@@ -181,7 +223,21 @@ print(f"  Task:          {args.task}")
 print(f"  Multilingual:  {args.multilingual}")
 
 model_name = args.model
-pretrained_model = f"openai/{model_name}"
+# Map CLI model names to HuggingFace pretrained model identifiers
+PRETRAINED_MODEL_MAP = {
+    "whisper-tiny.en": "openai/whisper-tiny.en",
+    "whisper-tiny": "openai/whisper-tiny",
+    "whisper-base.en": "openai/whisper-base.en",
+    "whisper-base": "openai/whisper-base",
+    "whisper-small.en": "openai/whisper-small.en",
+    "whisper-small": "openai/whisper-small",
+    "whisper-medium.en": "openai/whisper-medium.en",
+    "whisper-medium": "openai/whisper-medium",
+    "whisper-large": "openai/whisper-large-v2",
+    "whisper-large-v3": "openai/whisper-large-v3",
+    "whisper-turbo": "openai/whisper-large-v3-turbo",
+}
+pretrained_model = PRETRAINED_MODEL_MAP.get(model_name, f"openai/{model_name}")
 
 # Determine output file naming convention
 if is_english_only:
@@ -192,12 +248,8 @@ elif is_auto_language:
     # whisper-base-transcribe-translate.tflite
     tflite_model_path = f"{model_name}-transcribe-translate.tflite"
     saved_model_dir = f"tf_{model_name}_transcribe_translate_saved"
-elif args.language == "en":
-    # whisper-small.tflite (multilingual model forced to English)
-    tflite_model_path = f"{model_name}.tflite"
-    saved_model_dir = f"tf_{model_name}_saved"
 else:
-    # whisper-base.fr.tflite
+    # whisper-base.en.tflite, whisper-base.fr.tflite, etc.
     tflite_model_path = f"{model_name}.{args.language}.tflite"
     saved_model_dir = f"tf_{model_name}_{args.language}_saved"
 
@@ -328,48 +380,86 @@ print(f"Initial transcription: {transcription}")
 # Step 3: Patch TFForceTokensLogitsProcessor for TFLite export
 # ============================================================================
 print("\n" + "=" * 60)
-print("Step 3: Applying TFForceTokensLogitsProcessor patch")
+print("Step 3: Applying logits processor patches for TFLite export")
 print("=" * 60)
 
+# Check transformers version to determine which patches are needed
+_tf_version = tuple(int(x) for x in transformers.__version__.split(".")[:2])
+_needs_patches = _tf_version < (4, 45) and TFForceTokensLogitsProcessor is not None
 
-def my__init__(self, force_token_map: List[List[int]]):
-    force_token_map = dict(force_token_map)
-    force_token_array = np.ones((max(force_token_map.keys()) + 1), dtype=np.int32) * -1
-    for index, token in force_token_map.items():
-        if token is not None:
-            force_token_array[index] = token
-    self.force_token_array = tf.convert_to_tensor(force_token_array, dtype=tf.int32)
+if _needs_patches:
+    def _patched_force_tokens_init(self, force_token_map: List[List[int]]):
+        force_token_map = dict(force_token_map)
+        force_token_array = np.ones((max(force_token_map.keys()) + 1), dtype=np.int32) * -1
+        for index, token in force_token_map.items():
+            if token is not None:
+                force_token_array[index] = token
+        self.force_token_array = tf.convert_to_tensor(force_token_array, dtype=tf.int32)
 
 
-def my__call__(
-    self, input_ids: tf.Tensor, scores: tf.Tensor, cur_len: int
-) -> tf.Tensor:
-    def _force_token(generation_idx):
-        batch_size = scores.shape[0]
-        current_token = self.force_token_array[generation_idx]
-        new_scores = tf.ones_like(scores, dtype=scores.dtype) * -float(1)
-        indices = tf.stack(
-            (tf.range(batch_size), tf.tile([current_token], [batch_size])), axis=1
+    def _patched_force_tokens_call(
+        self, input_ids: tf.Tensor, scores: tf.Tensor, cur_len: int
+    ) -> tf.Tensor:
+        def _force_token(generation_idx):
+            batch_size = scores.shape[0]
+            current_token = self.force_token_array[generation_idx]
+            new_scores = tf.ones_like(scores, dtype=scores.dtype) * -float(1)
+            indices = tf.stack(
+                (tf.range(batch_size), tf.tile([current_token], [batch_size])), axis=1
+            )
+            updates = tf.zeros((batch_size,), dtype=scores.dtype)
+            new_scores = tf.tensor_scatter_nd_update(new_scores, indices, updates)
+            return new_scores
+
+        scores = tf.cond(
+            tf.greater_equal(cur_len, tf.shape(self.force_token_array)[0]),
+            lambda: tf.identity(scores),
+            lambda: tf.cond(
+                tf.greater_equal(self.force_token_array[cur_len], 0),
+                lambda: _force_token(cur_len),
+                lambda: scores,
+            ),
         )
-        updates = tf.zeros((batch_size,), dtype=scores.dtype)
-        new_scores = tf.tensor_scatter_nd_update(new_scores, indices, updates)
-        return new_scores
-
-    scores = tf.cond(
-        tf.greater_equal(cur_len, tf.shape(self.force_token_array)[0]),
-        lambda: tf.identity(scores),
-        lambda: tf.cond(
-            tf.greater_equal(self.force_token_array[cur_len], 0),
-            lambda: _force_token(cur_len),
-            lambda: scores,
-        ),
-    )
-    return scores
+        return scores
 
 
-TFForceTokensLogitsProcessor.__init__ = my__init__
-TFForceTokensLogitsProcessor.__call__ = my__call__
-print("Patch applied successfully.")
+    TFForceTokensLogitsProcessor.__init__ = _patched_force_tokens_init
+    TFForceTokensLogitsProcessor.__call__ = _patched_force_tokens_call
+
+
+    # Also patch TFSuppressTokensLogitsProcessor to avoid -inf NaN issues in TFLite
+    # (used by medium, large, and turbo models which have suppress_tokens in their config)
+    def _patched_suppress_tokens_init(self, suppress_tokens):
+        self.suppress_tokens = tf.constant(suppress_tokens, dtype=tf.int32)
+
+
+    def _patched_suppress_tokens_call(self, input_ids: tf.Tensor, scores: tf.Tensor, cur_len: int) -> tf.Tensor:
+        # Replace -inf with a large negative number to avoid NaN in TFLite
+        scores = tf.tensor_scatter_nd_update(
+            scores,
+            tf.reshape(
+                tf.stack(
+                    [
+                        tf.repeat(tf.range(tf.shape(scores)[0]), tf.shape(self.suppress_tokens)[0]),
+                        tf.tile(self.suppress_tokens, [tf.shape(scores)[0]]),
+                    ],
+                    axis=1,
+                ),
+                [-1, 2],
+            ),
+            tf.fill(
+                [tf.shape(scores)[0] * tf.shape(self.suppress_tokens)[0]],
+                tf.constant(-1e9, dtype=scores.dtype),
+            ),
+        )
+        return scores
+
+
+    TFSuppressTokensLogitsProcessor.__init__ = _patched_suppress_tokens_init
+    TFSuppressTokensLogitsProcessor.__call__ = _patched_suppress_tokens_call
+    print(f"Patches applied for transformers {transformers.__version__}")
+else:
+    print(f"Transformers {transformers.__version__} detected, skipping legacy patches.")
 
 
 # ============================================================================
@@ -378,6 +468,10 @@ print("Patch applied successfully.")
 print("\n" + "=" * 60)
 print("Step 4: Saving model in TF SavedModel format")
 print("=" * 60)
+
+# Get num_mel_bins from model config (80 for most models, 128 for large-v3/turbo)
+num_mel_bins = getattr(model.config, "num_mel_bins", 80)
+print(f"  num_mel_bins: {num_mel_bins}")
 
 if is_english_only or (not is_auto_language):
     # English-only OR single-language: one serving_default signature
@@ -388,7 +482,7 @@ if is_english_only or (not is_auto_language):
 
         @tf.function(
             input_signature=[
-                tf.TensorSpec((1, 80, 3000), tf.float32, name="input_features"),
+                tf.TensorSpec((1, num_mel_bins, 3000), tf.float32, name="input_features"),
             ],
         )
         def serving(self, input_features):
@@ -417,7 +511,7 @@ else:
 
         @tf.function(
             input_signature=[
-                tf.TensorSpec((1, 80, 3000), tf.float32, name="input_features"),
+                tf.TensorSpec((1, num_mel_bins, 3000), tf.float32, name="input_features"),
             ],
         )
         def transcribe(self, input_features):
@@ -431,7 +525,7 @@ else:
 
         @tf.function(
             input_signature=[
-                tf.TensorSpec((1, 80, 3000), tf.float32, name="input_features"),
+                tf.TensorSpec((1, num_mel_bins, 3000), tf.float32, name="input_features"),
             ],
         )
         def translate(self, input_features):
@@ -576,7 +670,7 @@ if not os.path.exists(whisper_repo_dir):
         check=True,
     )
 
-n_mels = 80
+n_mels = num_mel_bins
 with np.load(Path(whisper_repo_dir) / "whisper" / "assets" / "mel_filters.npz") as f:
     filters = torch.from_numpy(f[f"mel_{n_mels}"])
 

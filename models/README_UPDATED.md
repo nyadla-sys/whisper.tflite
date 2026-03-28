@@ -1,3 +1,28 @@
+---
+license: mit
+language:
+  - en
+  - fr
+  - de
+  - es
+  - hi
+  - zh
+  - ja
+  - ko
+  - ar
+  - ru
+  - pt
+  - it
+tags:
+  - whisper
+  - tflite
+  - speech-recognition
+  - on-device
+  - android
+library_name: transformers
+pipeline_tag: automatic-speech-recognition
+---
+
 # Whisper TFLite Model Generation and Test
 
 Converts OpenAI Whisper speech recognition models to TFLite format for on-device inference (e.g. Android), and generates the mel filter + vocab binary file needed by native C++ runtimes.
@@ -77,14 +102,19 @@ python3.9 whisper_tflite_model_generation_and_test.py --help
 
 ### Supported Models
 
-| Model | Type | Parameters |
-|---|---|---|
-| `whisper-tiny.en` | English-only | ~39M |
-| `whisper-tiny` | Multilingual | ~39M |
-| `whisper-base.en` | English-only | ~74M |
-| `whisper-base` | Multilingual | ~74M |
-| `whisper-small.en` | English-only | ~244M |
-| `whisper-small` | Multilingual | ~244M |
+| Model | Type | Parameters | Required VRAM | Relative Speed |
+|---|---|---|---|---|
+| `whisper-tiny.en` | English-only | ~39M | ~1 GB | ~10x |
+| `whisper-tiny` | Multilingual | ~39M | ~1 GB | ~10x |
+| `whisper-base.en` | English-only | ~74M | ~1 GB | ~7x |
+| `whisper-base` | Multilingual | ~74M | ~1 GB | ~7x |
+| `whisper-small.en` | English-only | ~244M | ~2 GB | ~4x |
+| `whisper-small` | Multilingual | ~244M | ~2 GB | ~4x |
+| `whisper-medium.en` | English-only | ~769M | ~5 GB | ~2x |
+| `whisper-medium` | Multilingual | ~769M | ~5 GB | ~2x |
+| `whisper-large` | Multilingual | ~1550M | ~10 GB | 1x |
+| `whisper-large-v3` | Multilingual | ~1550M | ~10 GB | 1x |
+| `whisper-turbo` | Multilingual | ~809M | ~6 GB | ~8x |
 
 ### Supported Languages
 
@@ -136,3 +166,20 @@ filters_vocab_multilingual.bin
 ```
 
 These files are what you need for on-device Whisper inference on Android or other embedded platforms.
+
+
+## Citing
+
+If you are using the Whisper tflite model, please cite:
+
+```bibtex
+@misc{nyadla-sys,
+  author={Niranjan Yadla},
+  title={{Whisper TFLite: OpenAI Whisper Model Port for Edge Devices}},
+  year=2022,
+  howpublished={GitHub Repository},
+  url={https://github.com/nyadla-sys/whisper.tflite},
+  url={https://github.com/moonshine-ai/openai-whisper},
+  note={Original TFLite implementation of OpenAI Whisper for on-device automatic speech recognition}
+}
+```
