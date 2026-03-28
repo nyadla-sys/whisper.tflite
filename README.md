@@ -51,18 +51,19 @@ Stay connected to this repository for further developments and updates related t
 
 If you have any questions or encounter any issues, please don't hesitate to open an issue in this repository. We'll be happy to assist you!
 
-## Citing:
+## Citing
 
-If you are using the DTLN model, please cite:
+If you are using the Whisper tflite model, please cite:
 
-```bash
-@inproceedings{Westhausen2020,
-  author={Nils L. Westhausen and Bernd T. Meyer},
-  title={{Dual-Signal Transformation LSTM Network for Real-Time Noise Suppression}},
-  year=2020,
-  booktitle={Proc. Interspeech 2020},
-  pages={2477--2481},
-  doi={10.21437/Interspeech.2020-2631},
-  url={http://dx.doi.org/10.21437/Interspeech.2020-2631}
+```bibtex
+@misc{nyadla-sys,
+  author={Niranjan Yadla},
+  title={{Whisper TFLite: OpenAI Whisper Model Port for Edge Devices}},
+  year=2022,
+  howpublished={GitHub Repository},
+  url={https://github.com/nyadla-sys/whisper.tflite},
+  url={https://github.com/moonshine-ai/openai-whisper},
+  note={Original TFLite implementation of OpenAI Whisper for on-device automatic speech recognition}
 }
 ```
+
