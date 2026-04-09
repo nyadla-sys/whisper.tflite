@@ -1,6 +1,6 @@
 # Whisper Android — Offline Speech Recognition
 
-Offline speech recognition for Android using OpenAI Whisper quantized TFLite models.
+Offline speech recognition for Android using OpenAI Whisper quantized TFLite models. Models are downloaded on-demand from HuggingFace to keep the APK small.
 
 ## Prerequisites
 
@@ -33,23 +33,17 @@ Offline speech recognition for Android using OpenAI Whisper quantized TFLite mod
    ```
    No separate download is needed.
 
-5. Model and vocab files are already bundled in `app/src/main/assets/`:
-   | Model file | Vocab file | Language |
-   |---|---|---|
-   | `whisper-tiny-en.tflite` | `filters_vocab_en.bin` | English only |
-   | `whisper-tiny.tflite` | `filters_vocab_multilingual.bin` | Multilingual |
+5. Build a release AAB for Play Store:
+   ```bash
+   ./gradlew bundleRelease
+   ```
+   Output: `app/build/outputs/bundle/release/app-release.aab`
 
-6. Build a release APK (signed with the release keystore):
+   Or build a release APK:
    ```bash
    ./gradlew assembleRelease
    ```
    Output: `app/build/outputs/apk/release/app-release.apk`
-
-   Or build a debug APK:
-   ```bash
-   ./gradlew assembleDebug
-   ```
-   Or use the Run button in Android Studio.
 
 ## Running Tests
 
@@ -60,8 +54,33 @@ JVM property-based tests (jqwik 1.8.4):
 
 ## Models
 
-Use the English-only model for better performance when you only need English transcription.
-Use the multilingual model when transcribing other languages.
+The app includes a model selection menu with three options:
+
+| Model | Size | Language | Bundled in APK |
+|---|---|---|---|
+| `tiny.en` | 40 MB | English only | ✅ Yes |
+| `small.en` | 247 MB | English only | ❌ Downloaded on first use |
+| `small` | 249 MB | Multilingual | ❌ Downloaded on first use |
+
+- **tiny.en** is bundled in the APK and works offline immediately.
+- **small.en** and **small** are downloaded from [HuggingFace](https://huggingface.co/nyadla-sys/whisper-tiny.en.tflite) when the user selects them. Download progress is shown in the status bar.
+- Downloaded models are cached in the app's data directory for future use.
+- Use the English-only models for better performance when you only need English transcription.
+- Use the **small** (multilingual) model when transcribing other languages.
+
+### Vocab files
+
+Vocab files are bundled in `app/src/main/assets/`:
+
+| Vocab file | Used by |
+|---|---|
+| `filters_vocab_en.bin` | tiny.en, small.en |
+| `filters_vocab_multilingual.bin` | small (multilingual) |
+
+## Permissions
+
+- **Microphone** — required for recording audio
+- **Internet** — required for downloading models on first use
 
 ## Whisper API Integration
 
@@ -76,7 +95,7 @@ String vocabPath = getFilePath("filters_vocab_en.bin");
 mWhisper.loadModel(modelPath, vocabPath, false); // false = English only
 
 // Multilingual
-// String modelPath = getFilePath("whisper-tiny.tflite");
+// String modelPath = getFilePath("whisper-small.tflite");
 // String vocabPath = getFilePath("filters_vocab_multilingual.bin");
 // mWhisper.loadModel(modelPath, vocabPath, true); // true = multilingual
 
@@ -131,53 +150,32 @@ mRecorder.stop();
 
 ## Release Signing
 
-The keystore and `keystore.properties` are excluded from version control. To build a signed release APK:
+The keystore and `keystore.properties` are excluded from version control. To build a signed release:
 
-1. The keystore is at `app/whisper-release.keystore` (generated once, keep it safe)
-2. `keystore.properties` in the `whisper_android/` root holds the credentials — create it if missing:
+1. Create `keystore.properties` in the `whisper_android/` root:
    ```
-   storeFile=whisper-release.keystore
+   storeFile=<path-to-keystore>
    storePassword=<your-store-password>
-   keyAlias=whisper-release
+   keyAlias=<your-key-alias>
    keyPassword=<your-key-password>
    ```
-3. Run `./gradlew assembleRelease`
+2. Run `./gradlew bundleRelease` (AAB) or `./gradlew assembleRelease` (APK)
 
-Never commit `keystore.properties` or the `.keystore` file to version control.
+Never commit `keystore.properties` or `.keystore` files to version control.
 
-## Sideload the Pre-built APK
+## Install via ADB
 
-A pre-built APK is available in the `pre_built_apk/` folder if you want to try the app without building from source.
-
-### Enable Unknown Sources on your Android device
-
-1. Go to Settings → Apps (or Privacy/Security depending on your device)
-2. Tap "Install unknown apps" or "Special app access"
-3. Select the app you'll use to install (e.g. Files, Chrome) and toggle "Allow from this source"
-
-### Install via ADB (recommended)
-
-Make sure ADB is installed and USB debugging is enabled on your device (Settings → Developer Options → USB Debugging).
+Make sure ADB is installed and USB debugging is enabled on your device.
 
 ```bash
-adb install whisper_android/pre_built_apk/WhisperASR.apk
+adb install app/build/outputs/apk/release/app-release.apk
 ```
 
 If you get a signature mismatch from a previous install:
 ```bash
-adb uninstall com.whispertflite
-adb install whisper_android/pre_built_apk/WhisperASR.apk
+adb uninstall com.whisper.android.tflitecpp
+adb install app/build/outputs/apk/release/app-release.apk
 ```
-
-### Install via file transfer
-
-1. Copy `pre_built_apk/WhisperASR.apk` to your Android device (USB, Google Drive, email, etc.)
-2. Open a file manager on the device and tap the APK
-3. Tap "Install" when prompted
-
-### Permissions required
-
-The app will request microphone permission on first launch. Grant it to enable recording and transcription.
 
 ## Demo
 
