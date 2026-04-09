@@ -3,9 +3,11 @@ cmake_minimum_required(VERSION 3.0)
 project(TFLiteEngine VERSION 1.0)
 
 # Specify where to find the header files for TF Lite C++
+set(TF_SRC ${CMAKE_CURRENT_LIST_DIR}/tf-lite-api/tensorflow_src)
 set(INCLUDE_DIRS
-        ${CMAKE_CURRENT_LIST_DIR}/tf-lite-api/tensorflow_src
+        ${TF_SRC}
         ${CMAKE_CURRENT_LIST_DIR}/tf-lite-api/include/flatbuffers/include
+        ${CMAKE_CURRENT_LIST_DIR}/tf-lite-api/include
         )
 
 # # Check if the build is Android
@@ -18,7 +20,7 @@ if (ANDROID)
     set_target_properties(tflite PROPERTIES IMPORTED_LOCATION
             ${CMAKE_CURRENT_LIST_DIR}/tf-lite-api/generated-libs/${ANDROID_ABI}/libtensorflowlite.so)
 
-    target_link_libraries(audioEngine tflite)
+    target_link_libraries(audioEngine tflite log)
 endif ()
 
 # Check if the build is not Android

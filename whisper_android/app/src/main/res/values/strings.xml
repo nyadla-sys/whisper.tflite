@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Whisper</string>
+    <string name="app_name">Whisper ASR</string>
     <string name="transcribe">Transcribe</string>
     <string name="translate">Translate</string>
     <string name="record">Record</string>

@@ -18,15 +18,15 @@ android {
             keyPassword keystoreProperties['keyPassword']
         }
     }
-    namespace 'com.whispertflite'
+    namespace 'com.whisper.android.tflitecpp'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.whispertflite"
+        applicationId "com.whisper.android.tflitecpp"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 4
+        versionName "2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -43,9 +43,21 @@ android {
             signingConfig signingConfigs.release
         }
     }
+    defaultConfig {
+        externalNativeBuild {
+            cmake {
+                arguments "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384"
+            }
+        }
+    }
     externalNativeBuild {
         cmake {
             path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
     compileOptions {
