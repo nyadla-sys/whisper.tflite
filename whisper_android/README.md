@@ -176,7 +176,3 @@ If you get a signature mismatch from a previous install:
 adb uninstall com.whisper.android.tflitecpp
 adb install app/build/outputs/apk/release/app-release.apk
 ```
-
-## Demo
-
-[![Demo Video](https://img.youtube.com/vi/w9pohi9NQrg/0.jpg)](https://www.youtube.com/watch?v=w9pohi9NQrg)
