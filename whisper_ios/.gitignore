@@ -1,0 +1,6 @@
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+Pods/
+.DS_Store

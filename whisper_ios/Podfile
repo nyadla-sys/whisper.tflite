@@ -1,0 +1,6 @@
+platform :ios, '16.0'
+
+target 'WhisperASR' do
+  use_frameworks!
+  pod 'TensorFlowLiteSwift', '~> 2.14'
+end
