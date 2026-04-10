@@ -19,20 +19,21 @@ android {
         }
     }
     namespace 'com.whisper.android.tflitecpp'
-    compileSdk 34
+    compileSdk 35
+    ndkVersion '28.0.13004108'
 
     defaultConfig {
         applicationId "com.whisper.android.tflitecpp"
         minSdk 26
-        targetSdk 34
-        versionCode 4
+        targetSdk 35
+        versionCode 16
         versionName "2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // Only ABIs with compatible pre-built libtensorflowlite.so
         ndk {
-            abiFilters 'armeabi-v7a', 'arm64-v8a'
+            abiFilters 'arm64-v8a'
         }
     }
 
@@ -46,7 +47,9 @@ android {
     defaultConfig {
         externalNativeBuild {
             cmake {
-                arguments "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384"
+                arguments "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384",
+                          "-DCMAKE_C_FLAGS=-Wl,-z,max-page-size=16384",
+                          "-DCMAKE_CXX_FLAGS=-Wl,-z,max-page-size=16384"
             }
         }
     }
@@ -57,7 +60,13 @@ android {
     }
     packaging {
         jniLibs {
-            useLegacyPackaging = false
+            useLegacyPackaging false
+            excludes += ['**/libtensorflowlite.so', '**/libtensorflowlite_link.so', '**/libtensorflowlite_jni_stub.so', '**/libtensorflowlite_jni_full.so']
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs += ['src/main/jniLibs']
         }
     }
     compileOptions {
@@ -88,8 +97,10 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
     testRuntimeOnly 'net.jqwik:jqwik-engine:1.8.4'
 
-    implementation 'org.tensorflow:tensorflow-lite:2.11.0'
-    implementation 'org.tensorflow:tensorflow-lite-support:0.4.3'
+    implementation('com.google.ai.edge.litert:litert:1.0.1') {
+        exclude group: 'com.google.ai.edge.litert', module: 'litert-native'
+    }
+    implementation 'com.google.ai.edge.litert:litert-support-api:1.0.1'
 //    implementation 'org.tensorflow:tensorflow-lite-api:2.11.0'
 //    implementation 'org.tensorflow:tensorflow-lite-support-api:0.4.3'
 //    implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.11.0'

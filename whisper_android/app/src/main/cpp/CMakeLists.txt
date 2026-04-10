@@ -15,10 +15,10 @@ if (ANDROID)
     add_library(audioEngine SHARED TFLiteEngine.cpp TFLiteEngineJNI.cpp)
     target_include_directories(audioEngine PRIVATE ${INCLUDE_DIRS})
 
-    # Add 'tflite' library (imported)
+    # Link against pre-built TFLite with patched SONAME (libtensorflowlite_jni.so)
     add_library(tflite SHARED IMPORTED)
     set_target_properties(tflite PROPERTIES IMPORTED_LOCATION
-            ${CMAKE_CURRENT_LIST_DIR}/tf-lite-api/generated-libs/${ANDROID_ABI}/libtensorflowlite.so)
+            ${CMAKE_CURRENT_LIST_DIR}/tf-lite-api/generated-libs/${ANDROID_ABI}/libtensorflowlite_jni_full.so)
 
     target_link_libraries(audioEngine tflite log)
 endif ()
