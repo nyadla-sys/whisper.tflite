@@ -25,7 +25,11 @@ To get started with this enhanced Whisper model, follow these steps:
 ## Demo Apps
 
 ### Android
-You can find a sample Android app in the [whisper_android](whisper_android) folder that demonstrates how to use the Whisper TFLite model for transcription on Android devices.
+You can find an Android app in the [Android_AppStore](https://play.google.com/store/apps/details?id=com.whisper.android.tflitecpp)
+
+### iOS
+You can find an iOS app in the [Apple_AppStore](https://apps.apple.com/us/app/whisper-asr/id6444556326)
+
 
 ## DTLN quantized tflite model
 
