@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/nyadla-sys/whisper.tflite,70,46
+/nyadla-sys/whisper.tflite/tree/main/models,24,11
+/nyadla-sys/whisper.tflite/blob/main/models/generate_tflite_from_whisper.ipynb,19,3
+/nyadla-sys/whisper.tflite/tree/main/whisper_android,18,14
+/nyadla-sys/whisper.tflite/tree/main,12,5
+/nyadla-sys/whisper.tflite/tree/main/whisper_native,7,6
+/nyadla-sys/whisper.tflite/tree/main/release,7,4
+/nyadla-sys/whisper.tflite/tree/main/whisper_android/app,6,6
+/nyadla-sys/whisper.tflite/tree/main/whisper_android/app/src,6,5
+/nyadla-sys/whisper.tflite/tree/main/whisper_android/app/src/main,6,5
