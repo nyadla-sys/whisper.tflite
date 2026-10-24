@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/nyadla-sys/whisper.tflite,36,24
+/nyadla-sys/whisper.tflite/tree/main/models,9,6
+/nyadla-sys/whisper.tflite/tree/main/whisper_native,5,5
+/nyadla-sys/whisper.tflite/tree/main,4,3
+/nyadla-sys/whisper.tflite/tree/main/release,4,3
+/nyadla-sys/whisper.tflite/releases,3,3
+/nyadla-sys/whisper.tflite/blob/main/README.md,2,2
+/nyadla-sys/whisper.tflite/tree/main/whisper_android,2,2
+/nyadla-sys/whisper.tflite/blob/main/release/WhisperASR.apk,1,1
+/nyadla-sys/whisper.tflite/blob/main/release/demo_android.mp4,1,1
